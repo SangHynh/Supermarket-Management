@@ -60,6 +60,10 @@ public class Employee implements Serializable{
         this.gender = gender;
         this.password = password;
     }
+    
+    public Employee(int id) {
+    	this.id = id;
+    }
 
 	public int getId() {
 		return id;

@@ -98,7 +98,7 @@ public class MainFrame extends JFrame {
 		contentPanel.setLayout(cardLayout);
 
 		// Add tabs to contentPanel
-		contentPanel.add(new InvoicePaymentTab(), "Thanh Toán Hóa Đơn");
+		contentPanel.add(new InvoicePaymentTab(employee), "Thanh Toán Hóa Đơn");
 		contentPanel.add(new InventoryManagementTab(), "Quản Lý Hàng Hóa");
 		contentPanel.add(new InvoiceManagementTab(), "Quản Lý Hóa Đơn");
 		contentPanel.add(new StaffManagementTab(), "Quản Lý Nhân Viên");
@@ -174,6 +174,13 @@ public class MainFrame extends JFrame {
 		        }
 				
 				
+			}
+			if (text.equals("Đăng xuất")) {
+			    int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn đăng xuất?", "Xác nhận đăng xuất", JOptionPane.YES_NO_OPTION);
+			    if (confirm == JOptionPane.YES_OPTION) {
+			        // Thoát chương trình
+			        System.exit(0);
+			    }
 			}
 			String command = e.getActionCommand();
 			cardLayout.show(contentPanel, command);

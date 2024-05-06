@@ -49,11 +49,6 @@ public class Invoice implements Serializable{
 		this.setTotal(total);
 	}
 
-	
-	public Invoice(Long id) {
-		this.id = id;
-	}
-	
 	public Invoice() {
 	}
 

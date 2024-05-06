@@ -37,6 +37,10 @@ public class Inventory implements Serializable {
         this.quantity = quantity;
         this.image = image;
     }
+    
+    public Inventory(int id) {
+    	this.id = id;
+    }
 
     // Phương thức để tạo inventoryId
     public String generateInventoryId(int id) {

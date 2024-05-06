@@ -2,14 +2,22 @@ package app;
 
 import java.io.*;
 import java.net.*;
-
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import dao.InventoryDAO;
+import dao.InvoiceDAO;
+import dao.InvoiceDetailDAO;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 import model.Employee;
 import model.Inventory;
+import model.Invoice;
+import model.InvoiceDetail;
 import services.LoginService;
 
 
@@ -184,38 +192,95 @@ class ClientHandler implements Runnable {
                 }
             }
             
-            else if (requestType.equals("SEARCH_INVENTORY")) {
-                // Đọc từ khóa tìm kiếm từ client
-                String keyword = in.readLine();
+            else if (requestType.equals("ADD_INVOICE")) {
+                try {
+                    // Đọc thông tin hóa đơn từ client
+                    int employeeId = Integer.parseInt(in.readLine()); 
+                    Employee employee = new Employee(employeeId);
+                    String customerName = in.readLine();
+                    // Đọc ngày từ client
+                    String dateString = in.readLine();
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                    Date date = dateFormat.parse(dateString);
+                    double total = Double.parseDouble(in.readLine());
 
-                // Xử lý yêu cầu tìm kiếm hàng tồn kho
-                // Gọi InventoryDAO để thực hiện tìm kiếm
-                EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("supermarket_server");
-                InventoryDAO inventoryDAO = new InventoryDAO(entityManagerFactory.createEntityManager());
-                List<Inventory> searchResult = inventoryDAO.searchInventoryByName(keyword);
+                    // Tạo đối tượng Invoice từ thông tin nhận được
+                    Invoice newInvoice = new Invoice();
+                    newInvoice.setEmployee(employee); 
+                    newInvoice.setDate(date);
+                    newInvoice.setCustomerName(customerName);
+                    newInvoice.setTotal(total);
 
-                // Gửi kết quả tìm kiếm về client
-                if (searchResult != null) {
-                    // Gửi số lượng hàng tìm được trước
-                    out.println("SEARCH_RESULT_SIZE");
-                    out.println(searchResult.size());
+                    EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("supermarket_server");
 
-                    // Gửi từng mục tìm kiếm
-                    for (Inventory inventory : searchResult) {
-                        out.println(inventory.getId());
-                        out.println(inventory.getName());
-                        out.println(inventory.getPrice());
-                        out.println(inventory.getQuantity());
-                        out.println(inventory.getImage());
+                    // Tạo đối tượng InvoiceDAO từ EntityManager
+                    InvoiceDAO invoiceDAO = new InvoiceDAO(entityManagerFactory.createEntityManager());
+
+                    // Gọi phương thức addInvoice để thêm hóa đơn vào cơ sở dữ liệu
+                    boolean isSuccess = invoiceDAO.addInvoice(newInvoice);
+
+                    // Gửi phản hồi về cho client
+                    if (isSuccess) {
+                        // Nếu thêm hóa đơn thành công, gửi thông báo về client
+                        out.println("ADD_INVOICE_SUCCESS");
+                        out.println(newInvoice.getId());                       
+                        
+                    } else {
+                        // Nếu thêm hóa đơn không thành công, gửi thông báo về client
+                        out.println("ADD_INVOICE_FAILED");
                     }
-                    // Gửi kết thúc danh sách
-                    out.println("END_SEARCH_RESULT");
-                } else {
-                    // Nếu không tìm thấy kết quả, gửi về số lượng 0
-                    out.println("SEARCH_RESULT_SIZE");
-                    out.println(0);
+                } catch (IOException | ParseException | NumberFormatException e) {
+                    // Xử lý ngoại lệ khi đọc dữ liệu từ client hoặc chuyển đổi dữ liệu không thành công
+                    out.println("ADD_INVOICE_FAILED");
+                    e.printStackTrace();
                 }
             }
+            
+            else if (requestType.equals("ADD_INVOICE_DETAILS")) {
+                try {
+                    // Đọc thông tin từ client
+                    long invoiceId = Integer.parseInt(in.readLine());
+                    int numberOfDetails = Integer.parseInt(in.readLine());
+
+                    List<InvoiceDetail> invoiceDetails = new ArrayList<>();
+
+                    // Đọc từng chi tiết hóa đơn từ client và thêm vào danh sách
+                    for (int i = 0; i < numberOfDetails; i++) {
+                    	int inventoryId = Integer.parseInt(in.readLine());
+                        int quantity = Integer.parseInt(in.readLine());
+                        double total = Double.parseDouble(in.readLine());
+
+                        // Tạo đối tượng InvoiceDetail từ thông tin nhận được
+                        InvoiceDetail invoiceDetail = new InvoiceDetail();
+                        invoiceDetail.setInvoice(new Invoice(invoiceId)); 
+                        invoiceDetail.setInventory(new Inventory(inventoryId));
+                        invoiceDetail.setQuantity(quantity);
+                        invoiceDetail.setTotal(total);
+
+                        invoiceDetails.add(invoiceDetail);
+                    }
+
+                    // Gọi service để thêm danh sách chi tiết hóa đơn
+                    EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("supermarket_server");
+                    InvoiceDetailDAO invoiceDetailDAO = new InvoiceDetailDAO(entityManagerFactory.createEntityManager());
+                    boolean isSuccess = invoiceDetailDAO.addInvoiceDetails(invoiceDetails);
+
+                    // Gửi phản hồi về cho client
+                    if (isSuccess) {
+                        // Nếu thêm thành công, gửi thông báo về client
+                        out.println("ADD_INVOICE_DETAILS_SUCCESS");
+                    } else {
+                        // Nếu thêm không thành công, gửi thông báo về client
+                        out.println("ADD_INVOICE_DETAILS_FAILED");
+                    }
+                } catch (IOException | NumberFormatException e) {
+                    // Xử lý ngoại lệ khi đọc dữ liệu từ client hoặc chuyển đổi dữ liệu không thành công
+                    out.println("ADD_INVOICE_DETAILS_FAILED");
+                    e.printStackTrace();
+                }
+            }
+
+
 
 
             else {

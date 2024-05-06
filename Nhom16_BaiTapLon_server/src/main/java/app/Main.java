@@ -1,46 +1,47 @@
 package app;
-import java.util.Date;
-import java.util.List;
 
-import dao.InvoiceDAO;
+import java.util.ArrayList;
+import java.util.List;
+import dao.InvoiceDetailDAO;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
-import model.Employee;
+import model.Inventory;
 import model.Invoice;
+import model.InvoiceDetail;
 
 public class Main {
     public static void main(String[] args) {
-        // Khởi tạo EntityManagerFactory từ persistence unit được định nghĩa trong file persistence.xml
         EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("supermarket_server");
-
-        // Khởi tạo EntityManager từ EntityManagerFactory
         EntityManager entityManager = entityManagerFactory.createEntityManager();
 
-        // Khởi tạo InvoiceDAO với EntityManager
-        InvoiceDAO invoiceDAO = new InvoiceDAO(entityManager);
+        // Khởi tạo DAO
+        InvoiceDetailDAO invoiceDetailDAO = new InvoiceDetailDAO(entityManager);
 
-        // Lấy danh sách tất cả hóa đơn
-        List<Invoice> invoices = invoiceDAO.getAllInvoices();
-        System.out.println("Danh sách tất cả hóa đơn:");
-        for (Invoice invoice : invoices) {
-            System.out.println(invoice.getId());
-        }
+        // Tạo danh sách InvoiceDetail
+        List<InvoiceDetail> invoiceDetails = new ArrayList<>();
 
-        // Thêm một hóa đơn mới
-        Employee employee = new Employee(1,"1", "1", true, "1", "1", true, "1");
-        Invoice newInvoice = new Invoice(employee, new Date());
-        // Cài đặt thông tin cho hóa đơn mới
-        // newInvoice.setXXX();
-        boolean added = invoiceDAO.addInvoice(newInvoice);
-        if (added) {
-            System.out.println("Hóa đơn đã được thêm thành công.");
+        // Thêm các InvoiceDetail vào danh sách
+        Invoice invoice = new Invoice(1l);
+        Inventory inventory = new Inventory(1);
+        invoiceDetails.add(new InvoiceDetail(invoice, inventory, 5, 100)); 
+        invoiceDetails.add(new InvoiceDetail(invoice, inventory, 15, 100)); 
+        invoiceDetails.add(new InvoiceDetail(invoice, inventory, 25, 100)); 
+        invoiceDetails.add(new InvoiceDetail(invoice, inventory, 35, 100)); 
+
+
+        // Thêm danh sách InvoiceDetail vào cơ sở dữ liệu
+        boolean success = invoiceDetailDAO.addInvoiceDetails(invoiceDetails);
+
+        if (success) {
+            System.out.println("Thêm thành công các chi tiết hóa đơn.");
         } else {
-            System.out.println("Đã xảy ra lỗi khi thêm hóa đơn.");
+            System.out.println("Thêm chi tiết hóa đơn không thành công.");
         }
 
-        // Đóng EntityManager và EntityManagerFactory khi đã sử dụng xong
         entityManager.close();
         entityManagerFactory.close();
     }
 }
+
+
