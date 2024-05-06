@@ -13,9 +13,11 @@ public class InvoiceDAO {
         this.entityManager = entityManager;
     }
 
-    public List<Invoice> getAllInvoices() {
-        String jpql = "SELECT i FROM Invoice i";
-        TypedQuery<Invoice> query = entityManager.createQuery(jpql, Invoice.class);
+    public List<Object[]> getAllInvoicesWithEmployeeInfo() {
+        String jpql = "SELECT i.id, i.date, i.total, i.customerName, e.name "
+                     + "FROM Invoice i "
+                     + "JOIN Employee e ON i.employee.id = e.id";
+        TypedQuery<Object[]> query = entityManager.createQuery(jpql, Object[].class);
         return query.getResultList();
     }
 
@@ -78,4 +80,19 @@ public class InvoiceDAO {
             return false;
         }
     }
+    
+    public List<Object[]> searchInvoicesByKeyword(String keyword) {
+    	String jpql = "SELECT i.id, i.date, i.total, i.customerName, e.name "
+                + "FROM Invoice i "
+                + "JOIN Employee e ON i.employee.id = e.id "
+                + "WHERE i.id LIKE :keyword "
+                + "OR i.date LIKE :keyword "
+                + "OR i.total LIKE :keyword "
+                + "OR i.customerName LIKE :keyword "
+                + "OR e.name LIKE :keyword";
+        TypedQuery<Object[]> query = entityManager.createQuery(jpql, Object[].class);
+        query.setParameter("keyword", "%" + keyword + "%"); // Thêm dấu % để tìm kiếm các từ chứa từ khóa
+        return query.getResultList();
+    }
+
 }

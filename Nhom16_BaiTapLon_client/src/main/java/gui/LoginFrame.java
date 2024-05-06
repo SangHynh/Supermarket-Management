@@ -59,7 +59,7 @@ public class LoginFrame extends JFrame {
 		GridBagConstraints constraints = new GridBagConstraints();
 		constraints.insets = new Insets(20, 20, 20, 20);
 
-		JLabel titleLabel = new JLabel("HỆ THỐNG QUẢN LÝ");
+		JLabel titleLabel = new JLabel("HỆ THỐNG QUẢN LÝ SIÊU THỊ");
 		titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
 		titleLabel.setForeground(new Color(70, 130, 180));
 		constraints.gridx = 0;

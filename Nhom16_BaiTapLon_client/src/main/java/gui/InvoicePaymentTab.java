@@ -50,6 +50,7 @@ public class InvoicePaymentTab extends JPanel implements ActionListener {
 		JPanel searchPanel = new JPanel(new BorderLayout());
 		searchField = new JTextField();
 		searchButton = new JButton("Tìm kiếm");
+		searchButton.addActionListener(this);
 
 		searchPanel.add(searchField, BorderLayout.CENTER);
 		searchPanel.add(searchButton, BorderLayout.EAST);
@@ -419,6 +420,8 @@ public class InvoicePaymentTab extends JPanel implements ActionListener {
 			}
 		}
 
+		
+		//hàm thanh toán
 		if (e.getSource() == payButton) {
 			// Kiểm tra nếu bảng phụ rỗng hoặc tên khách hàng chưa nhập
 			DefaultTableModel secondaryTableModel = (DefaultTableModel) secondaryTable.getModel();
@@ -478,7 +481,49 @@ public class InvoicePaymentTab extends JPanel implements ActionListener {
 				JOptionPane.showMessageDialog(this, "Thanh toán không thành công. Vui lòng thử lại!", "Lỗi",
 						JOptionPane.ERROR_MESSAGE);
 			}
+			
 		}
+		
+		else if (e.getSource() == searchButton) {
+		    String keyword = searchField.getText();
+		    System.out.println("keyword: "+ keyword);
+		    if (keyword.isEmpty()) {
+		    	DefaultTableModel mainTableModel = (DefaultTableModel) table.getModel();
+				reloadMainTable(mainTableModel); 
+		        return; 
+		    }
+		    List<Inventory> searchResult = inventoryService.searchInventory(keyword);
+		    System.out.println("kết quả:" +searchResult);
+		    DefaultTableModel model = (DefaultTableModel) table.getModel();
+		    model.setRowCount(0); 
+		    for (Inventory inventory : searchResult) {
+		        String imagePath = "/data/" + inventory.getImage();
+		        InputStream inputStream = getClass().getResourceAsStream(imagePath);
+		        if (inputStream != null) {
+		            try {
+		                BufferedImage bufferedImage = ImageIO.read(inputStream);
+		                if (bufferedImage != null) {
+		                    Image scaledImage = bufferedImage.getScaledInstance(80, 80, Image.SCALE_SMOOTH);
+		                    ImageIcon scaledIcon = new ImageIcon(scaledImage);
+		                    model.addRow(new Object[]{inventory.generateInventoryId(inventory.getId()), scaledIcon, inventory.getName(), inventory.getPrice() + " VNĐ", inventory.getQuantity(), inventory.getImage()});
+		                } else {
+		                    System.out.println("Không tìm thấy hình ảnh: " + inventory.getImage());
+		                }
+		            } catch (IOException ex) {
+		                ex.printStackTrace();
+		            } finally {
+		                try {
+		                    inputStream.close();
+		                } catch (IOException ex) {
+		                    ex.printStackTrace();
+		                }
+		            }
+		        } else {
+		            model.addRow(new Object[]{inventory.generateInventoryId(inventory.getId()), null, inventory.getName(), inventory.getPrice() + " VNĐ", inventory.getQuantity(), inventory.getImage()});
+		        }
+		    }
+		}
+		
 	}
 
 }

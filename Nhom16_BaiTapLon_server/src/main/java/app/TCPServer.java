@@ -25,7 +25,8 @@ public class TCPServer {
     public static void main(String[] args) {
         try {
             // Tạo socket server và lắng nghe cổng 9000
-            ServerSocket serverSocket = new ServerSocket(9000);
+            ServerSocket serverSocket = new ServerSocket();
+            serverSocket.bind(new InetSocketAddress("localhost", 9000));
             System.out.println("Server đang chờ kết nối...");
             while (true) {
                 // Chấp nhận kết nối từ client
@@ -122,6 +123,10 @@ class ClientHandler implements Runnable {
                     out.println(0);
                 }
             }
+            
+            
+            
+            
             else if (requestType.equals("ADD_INVENTORY")) {
                 // Đọc thông tin hàng tồn kho từ client
                 String name = in.readLine();
@@ -144,6 +149,34 @@ class ClientHandler implements Runnable {
                 } else {
                     // Nếu thêm không thành công, gửi thông báo về client
                     out.println("ADD_INVENTORY_FAILED");
+                }
+            }
+            else if (requestType.equals("SEARCH_INVENTORY")) {
+                // Đọc từ khóa tìm kiếm từ client
+                String keyword = in.readLine();
+
+                // Gọi InventoryDAO để tìm kiếm hàng tồn kho trong cơ sở dữ liệu
+                EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("supermarket_server");
+                InventoryDAO inventoryDAO = new InventoryDAO(entityManagerFactory.createEntityManager());
+                List<Inventory> searchResult = inventoryDAO.searchInventoryByName(keyword);
+
+                // Gửi phản hồi về cho client
+                if (!searchResult.isEmpty()) {
+                    // Gửi kích thước của kết quả tìm kiếm
+                    out.println("SEARCH_RESULT_SIZE");
+                    out.println(searchResult.size());
+
+                    // Gửi từng mục tìm kiếm
+                    for (Inventory inventory : searchResult) {
+                        out.println(inventory.getId());
+                        out.println(inventory.getName());
+                        out.println(inventory.getPrice());
+                        out.println(inventory.getQuantity());
+                        out.println(inventory.getImage());
+                    }
+                } else {
+                    // Gửi thông báo không có kết quả tìm kiếm
+                    out.println("NO_SEARCH_RESULT");
                 }
             }
             
@@ -276,6 +309,106 @@ class ClientHandler implements Runnable {
                 } catch (IOException | NumberFormatException e) {
                     // Xử lý ngoại lệ khi đọc dữ liệu từ client hoặc chuyển đổi dữ liệu không thành công
                     out.println("ADD_INVOICE_DETAILS_FAILED");
+                    e.printStackTrace();
+                }
+            }
+
+            else if (requestType.equals("GET_INVOICE_DETAILS_WITH_PRODUCT_INFO")) {
+                try {
+                    // Đọc thông tin từ client
+                    long invoiceId = Long.parseLong(in.readLine());
+
+                    // Gọi DAO để lấy danh sách chi tiết hóa đơn với thông tin sản phẩm
+                    EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("supermarket_server");
+                    InvoiceDetailDAO invoiceDetailDAO = new InvoiceDetailDAO(entityManagerFactory.createEntityManager());
+                    List<Object[]> invoiceDetails = invoiceDetailDAO.getInvoiceDetailsWithProductInfoByInvoiceId(invoiceId);
+
+                    // Gửi phản hồi về cho client
+                    if (invoiceDetails != null && !invoiceDetails.isEmpty()) {
+                        // Nếu có kết quả, gửi danh sách chi tiết hóa đơn về client
+                        out.println("GET_INVOICE_DETAILS_WITH_PRODUCT_INFO_SUCCESS");
+                        // Gửi số lượng chi tiết hóa đơn về client
+                        out.println(invoiceDetails.size());
+                        // Gửi từng chi tiết hóa đơn về client
+                        for (Object[] detail : invoiceDetails) {
+                            // Chi tiết hóa đơn gồm mã hóa đơn, mã sản phẩm, tên sản phẩm, đơn giá, số lượng và tổng
+                            out.println(detail[0]); // Mã hóa đơn
+                            out.println(detail[1]); // Mã sản phẩm
+                            out.println(detail[2]); // Tên sản phẩm
+                            out.println(detail[3]); // Đơn giá
+                            out.println(detail[4]); // Số lượng
+                            out.println(detail[5]); // Tổng
+                        }
+                    } else {
+                        // Nếu không có kết quả, gửi thông báo về client
+                        out.println("GET_INVOICE_DETAILS_WITH_PRODUCT_INFO_FAILED");
+                    }
+                } catch (IOException | NumberFormatException e) {
+                    // Xử lý ngoại lệ khi đọc dữ liệu từ client hoặc chuyển đổi dữ liệu không thành công
+                    out.println("GET_INVOICE_DETAILS_WITH_PRODUCT_INFO_FAILED");
+                    e.printStackTrace();
+                }
+            }
+
+            
+            else if (requestType.equals("GET_ALL_INVOICES_WITH_EMPLOYEE_INFO")) {
+                try {
+                    // Gọi DAO để lấy danh sách các hóa đơn với thông tin của nhân viên
+                	EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("supermarket_server");
+                    InvoiceDAO invoiceDAO = new InvoiceDAO(entityManagerFactory.createEntityManager());
+                    List<Object[]> invoicesWithEmployeeInfo = invoiceDAO.getAllInvoicesWithEmployeeInfo();
+
+                    // Gửi số lượng hóa đơn về cho client
+                    out.println("INVOICES_WITH_EMPLOYEE_INFO_SIZE");
+                    out.println(invoicesWithEmployeeInfo.size());
+
+                    // Gửi từng hóa đơn kèm thông tin của nhân viên tương ứng
+                    for (Object[] invoice : invoicesWithEmployeeInfo) {
+                        out.println(invoice[0]); // Mã hóa đơn
+                        out.println(invoice[1]); // Ngày
+                        out.println(invoice[2]); // Tổng tiền
+                        out.println(invoice[3]); // Tên khách hàng
+                        out.println(invoice[4]); // Tên nhân viên
+                    }
+                } catch (Exception ex) {
+                    // Xử lý ngoại lệ khi có lỗi xảy ra
+                    ex.printStackTrace();
+                    out.println("GET_ALL_INVOICES_WITH_EMPLOYEE_INFO_FAILED");
+                }
+            }
+            
+            
+            else if (requestType.equals("SEARCH_INVOICE")) {
+                try {
+                    // Đọc từ khóa tìm kiếm từ client
+                    String keyword = in.readLine();
+
+                    // Gọi InvoiceDAO để tìm kiếm hóa đơn trong cơ sở dữ liệu
+                    EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("supermarket_server");
+                    InvoiceDAO invoiceDAO = new InvoiceDAO(entityManagerFactory.createEntityManager());
+                    List<Object[]> searchResult = invoiceDAO.searchInvoicesByKeyword(keyword);
+
+                    // Gửi phản hồi về cho client
+                    if (!searchResult.isEmpty()) {
+                        // Gửi kích thước của kết quả tìm kiếm
+                        out.println("SEARCH_RESULT_SIZE");
+                        out.println(searchResult.size());
+
+                        // Gửi từng mục tìm kiếm
+                        for (Object[] invoice : searchResult) {
+                            out.println(invoice[0]); // Mã hóa đơn
+                            out.println(invoice[1]); // Ngày
+                            out.println(invoice[2]); // Tổng tiền
+                            out.println(invoice[3]); // Tên khách hàng
+                            out.println(invoice[4]); // Tên nhân viên
+                        }
+                    } else {
+                        // Gửi thông báo không có kết quả tìm kiếm
+                        out.println("NO_SEARCH_RESULT");
+                    }
+                } catch (IOException e) {
+                    // Xử lý ngoại lệ khi đọc dữ liệu từ client hoặc gửi dữ liệu không thành công
+                    out.println("SEARCH_INVOICE_FAILED");
                     e.printStackTrace();
                 }
             }

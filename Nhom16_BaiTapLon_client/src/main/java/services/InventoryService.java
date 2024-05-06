@@ -153,11 +153,13 @@ public class InventoryService {
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
+            System.out.println("SEARCH_INVENTORY");
             // Gửi loại yêu cầu
             out.println("SEARCH_INVENTORY");
 
             // Gửi từ khóa tìm kiếm
             out.println(keyword);
+            System.out.println(keyword);
 
             // Đọc phản hồi từ server
             String response = in.readLine();
@@ -185,6 +187,9 @@ public class InventoryService {
 
         return searchResult;
     }
+
+    
+ 
 
     
     

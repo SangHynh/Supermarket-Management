@@ -16,14 +16,16 @@ public class InvoiceDetailDAO {
         this.entityManager = entityManager;
     }
 
-    //lấy ra hết chi tiết hóa đơn
-    public List<InvoiceDetail> getInvoiceDetailsByInvoiceId(Long invoiceId) {
-        String jpql = "SELECT ivd FROM InvoiceDetail ivd WHERE ivd.invoice.id = :invoiceId";
-        TypedQuery<InvoiceDetail> query = entityManager.createQuery(jpql, InvoiceDetail.class);
+    public List<Object[]> getInvoiceDetailsWithProductInfoByInvoiceId(Long invoiceId) {
+        String jpql = "SELECT ivd.invoice.id, ivd.inventory.id, ivd.inventory.name, ivd.inventory.price, " +
+                      "ivd.quantity, ivd.total " +
+                      "FROM InvoiceDetail ivd " +
+                      "WHERE ivd.invoice.id = :invoiceId";
+        TypedQuery<Object[]> query = entityManager.createQuery(jpql, Object[].class);
         query.setParameter("invoiceId", invoiceId);
         return query.getResultList();
     }
-    
+
     //thêm hàng loạt các chi tiết hóa đơn
     public boolean addInvoiceDetails(List<InvoiceDetail> invoiceDetails) {
         EntityTransaction transaction = null;

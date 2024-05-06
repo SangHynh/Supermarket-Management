@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.List;
 
 import model.InvoiceDetail;
@@ -44,4 +45,39 @@ public class InvoiceDetailService {
             return false;
         }
     }
+    
+    
+    public List<Object[]> getInvoiceDetailsWithProductInfo(long invoiceId) {
+        List<Object[]> invoiceDetails = new ArrayList<>();
+        try {
+        	socket = new Socket("localhost", 9000);
+            out = new PrintWriter(socket.getOutputStream(), true);
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            // Gửi yêu cầu lấy thông tin chi tiết hóa đơn với thông tin sản phẩm tới server
+            out.println("GET_INVOICE_DETAILS_WITH_PRODUCT_INFO");
+            out.println(invoiceId);
+
+            // Đọc phản hồi từ server
+            String response = in.readLine();
+            if (response.equals("GET_INVOICE_DETAILS_WITH_PRODUCT_INFO_SUCCESS")) {
+                // Đọc số lượng chi tiết hóa đơn từ server
+                int numberOfDetails = Integer.parseInt(in.readLine());
+                // Đọc từng chi tiết hóa đơn từ server và thêm vào danh sách
+                for (int i = 0; i < numberOfDetails; i++) {
+                    long invoiceIdResponse = Long.parseLong(in.readLine());
+                    int productId = Integer.parseInt(in.readLine());
+                    String productName = in.readLine();
+                    double price = Double.parseDouble(in.readLine());
+                    int quantity = Integer.parseInt(in.readLine());
+                    double total = Double.parseDouble(in.readLine());
+                    Object[] detail = {invoiceIdResponse, productId, productName, price, quantity, total};
+                    invoiceDetails.add(detail);
+                }
+            }
+        } catch (IOException | NumberFormatException e) {
+            e.printStackTrace();
+        }
+        return invoiceDetails;
+    }
+    
 }

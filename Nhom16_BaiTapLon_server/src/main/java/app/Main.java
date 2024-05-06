@@ -1,47 +1,38 @@
 package app;
 
-import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import dao.InvoiceDetailDAO;
+
+import dao.InvoiceDAO;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
-import model.Inventory;
-import model.Invoice;
-import model.InvoiceDetail;
 
 public class Main {
     public static void main(String[] args) {
-        EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("supermarket_server");
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        // Khởi tạo EntityManagerFactory từ persistence.xml
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("supermarket_server");
+        EntityManager entityManager = emf.createEntityManager();
 
-        // Khởi tạo DAO
-        InvoiceDetailDAO invoiceDetailDAO = new InvoiceDetailDAO(entityManager);
+        // Tạo một đối tượng InvoiceDAO với EntityManager đã tạo
+        InvoiceDAO invoiceDAO = new InvoiceDAO(entityManager);
 
-        // Tạo danh sách InvoiceDetail
-        List<InvoiceDetail> invoiceDetails = new ArrayList<>();
+        // Lấy danh sách hóa đơn kèm thông tin nhân viên từ InvoiceDAO
+        List<Object[]> invoicesWithEmployeeInfo = invoiceDAO.getAllInvoicesWithEmployeeInfo();
 
-        // Thêm các InvoiceDetail vào danh sách
-        Invoice invoice = new Invoice(1l);
-        Inventory inventory = new Inventory(1);
-        invoiceDetails.add(new InvoiceDetail(invoice, inventory, 5, 100)); 
-        invoiceDetails.add(new InvoiceDetail(invoice, inventory, 15, 100)); 
-        invoiceDetails.add(new InvoiceDetail(invoice, inventory, 25, 100)); 
-        invoiceDetails.add(new InvoiceDetail(invoice, inventory, 35, 100)); 
+        // In ra thông tin của từng hóa đơn kèm thông tin nhân viên
+        for (Object[] invoice : invoicesWithEmployeeInfo) {
+            long invoiceId = (long) invoice[0];
+            Date date = (Date) invoice[1];
+            double total = (double) invoice[2];
+            String customerName = (String) invoice[3];
+            String employeeName = (String) invoice[4];
 
-
-        // Thêm danh sách InvoiceDetail vào cơ sở dữ liệu
-        boolean success = invoiceDetailDAO.addInvoiceDetails(invoiceDetails);
-
-        if (success) {
-            System.out.println("Thêm thành công các chi tiết hóa đơn.");
-        } else {
-            System.out.println("Thêm chi tiết hóa đơn không thành công.");
+            System.out.println("Hóa đơn #" + invoiceId + " - Ngày: " + date + " - Tổng tiền: " + total + " - Khách hàng: " + customerName + " - Nhân viên: " + employeeName);
         }
 
+        // Đóng EntityManager khi không cần nữa
         entityManager.close();
-        entityManagerFactory.close();
+        emf.close();
     }
 }
-
-
