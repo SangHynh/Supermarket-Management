@@ -5,6 +5,7 @@ import java.awt.*;
 import javax.swing.border.TitledBorder;
 
 import model.Employee;
+import services.EmployeeService;
 
 import javax.swing.border.EtchedBorder;
 import java.awt.event.ActionListener;
@@ -111,8 +112,23 @@ public class AccountInfoFrame extends JFrame {
         JButton btnDoiMatKhau = new JButton("Đổi mật khẩu");
         btnDoiMatKhau.setFont(new Font("Tahoma", Font.PLAIN, 15));
         btnDoiMatKhau.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent e) {
-        	}
+            public void actionPerformed(ActionEvent e) {
+                // Tạo dialog cho phép nhập mật khẩu mới
+                String newPassword = JOptionPane.showInputDialog(null, "Nhập mật khẩu mới:", "Đổi mật khẩu", JOptionPane.PLAIN_MESSAGE);
+                if (newPassword != null) { // Kiểm tra xem người dùng có nhập mật khẩu mới hay không
+                    // Gọi service để gửi yêu cầu cập nhật mật khẩu tới server
+                    EmployeeService employeeService = new EmployeeService();
+                    boolean success = employeeService.updatePasswordEmployeeOnServer(employee.getId(), newPassword);
+                    System.out.println(success);
+                    if (success) {
+                        // Hiển thị thông báo khi cập nhật mật khẩu thành công
+                        JOptionPane.showMessageDialog(null, "Cập nhật mật khẩu thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        // Hiển thị thông báo khi cập nhật mật khẩu không thành công
+                        JOptionPane.showMessageDialog(null, "Cập nhật mật khẩu không thành công!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
         });
         btnDoiMatKhau.setBounds(309, 303, 161, 37);
         infoPanel.add(btnDoiMatKhau);

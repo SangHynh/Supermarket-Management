@@ -36,6 +36,8 @@ public class Employee implements Serializable{
 
     @Column(nullable = false)
     private String password;
+    
+    private boolean status;
 
     public Employee() {
     }
@@ -50,6 +52,17 @@ public class Employee implements Serializable{
         this.password = password;
     }
     
+    public Employee(String name, String phone, boolean role, String image, String email, boolean gender, String password, boolean status) {
+        this.name = name;
+        this.phone = phone;
+        this.role = role;
+        this.image = image;
+        this.email = email;
+        this.gender = gender;
+        this.password = password;
+        this.status = status;
+    }
+    
     public Employee(int id, String name, String phone, boolean role, String image, String email, boolean gender, String password) {
         this.id = id;
         this.name = name;
@@ -59,6 +72,39 @@ public class Employee implements Serializable{
         this.email = email;
         this.gender = gender;
         this.password = password;
+    }
+    
+    
+    public Employee(int id, String name, String phone, boolean role, String image, String email, boolean gender, String password, boolean status) {
+        this.id = id;
+        this.name = name;
+        this.phone = phone;
+        this.role = role;
+        this.image = image;
+        this.email = email;
+        this.gender = gender;
+        this.password = password;
+        this.status = status;
+    }
+    
+    public Employee(int id, String name, String phone, boolean role, String image, String email, boolean gender, boolean status) {
+        this.id = id;
+        this.name = name;
+        this.phone = phone;
+        this.role = role;
+        this.image = image;
+        this.email = email;
+        this.gender = gender;
+        this.status = status;
+    }
+    
+    public Employee(int id, String password) {
+        this.id = id;
+        this.password = password;
+    }
+    
+    public Employee(int id) {
+    	this.id = id;
     }
 
 	public int getId() {
@@ -137,6 +183,14 @@ public class Employee implements Serializable{
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public boolean isStatus() {
+		return status;
+	}
+
+	public void setStatus(boolean status) {
+		this.status = status;
 	}
     
 }

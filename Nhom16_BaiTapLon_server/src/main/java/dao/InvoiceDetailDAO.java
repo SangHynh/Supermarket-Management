@@ -48,4 +48,30 @@ public class InvoiceDetailDAO {
         }
     }
     
+ // Xóa chi tiết của một hàng hóa từ cơ sở dữ liệu dựa trên inventory id và invoice id
+    public boolean deleteInvoiceDetailByInventoryIdAndInvoiceId(Long invoiceID, int inventoryId) {
+        EntityTransaction transaction = null;
+        try {
+            transaction = entityManager.getTransaction();
+            transaction.begin();
+
+            // Tìm và xóa chi tiết hóa đơn từ cơ sở dữ liệu dựa trên inventory id và invoice id
+            String jpql = "DELETE FROM InvoiceDetail ivd WHERE ivd.invoice.id = :invoiceId AND ivd.inventory.id = :inventoryId";
+            int deletedCount = entityManager.createQuery(jpql)
+                                            .setParameter("inventoryId", inventoryId)
+                                            .setParameter("invoiceId", invoiceID)
+                                            .executeUpdate();
+
+            transaction.commit();
+            return deletedCount > 0;
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    
 }

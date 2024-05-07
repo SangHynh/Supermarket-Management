@@ -141,6 +141,33 @@ public class InvoiceService {
             return null;
         }
     }
-
     
+    //cập nhật tổng tiền hóa đơn sau khi xóa chi tiết hóa đơn
+    public boolean updateInvoiceTotal(long invoiceId, double total) {
+        try {
+            Socket socket = new Socket("localhost", 9000);
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+            // Gửi yêu cầu tới server
+            out.println("UPDATE_TOTAL_FOR_INVOICE");
+            // Gửi ID của hóa đơn và tổng tiền mới
+            out.println(invoiceId);
+            out.println(total);
+
+            // Đọc phản hồi từ server
+            String response = in.readLine();
+            System.out.println(response);
+
+            // Trả về true nếu cập nhật thành công, ngược lại trả về false
+            return response.equals("UPDATE_TOTAL_FOR_INVOICE_SUCCESS");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
+
+
 }

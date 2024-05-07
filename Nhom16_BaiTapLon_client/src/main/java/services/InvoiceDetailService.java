@@ -80,4 +80,28 @@ public class InvoiceDetailService {
         return invoiceDetails;
     }
     
+    public boolean deleteInvoiceDetailFromClient(long invoiceId, int inventoryId) {
+        try {
+            // Kết nối tới server
+            Socket socket = new Socket("localhost", 9000);
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+            // Gửi yêu cầu xóa chi tiết hóa đơn tới server
+            out.println("DELETE_INVOICE_DETAIL");
+            out.println(invoiceId);
+            out.println(inventoryId);
+
+            // Đọc phản hồi từ server
+            String response = in.readLine();
+            System.out.println(response);
+            // Kiểm tra phản hồi từ server và trả về kết quả tương ứng
+            return response.equals("DELETE_INVOICE_DETAIL_SUCCESS");
+        } catch (IOException e) {
+            // Xử lý ngoại lệ khi gửi yêu cầu hoặc nhận phản hồi không thành công
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
 }

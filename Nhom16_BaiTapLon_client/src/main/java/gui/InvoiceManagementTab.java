@@ -36,6 +36,7 @@ public class InvoiceManagementTab extends JPanel implements ActionListener{
 	private JButton increaseButton;
 	private JButton decreaseButton;
 	private DefaultTableModel mainTableModel;
+	private DefaultTableModel secondaryTableModel;
 	private final InvoiceService invoiceService = new InvoiceService();
 	private final InvoiceDetailService invoiceDetailService = new InvoiceDetailService();
 
@@ -101,7 +102,7 @@ public class InvoiceManagementTab extends JPanel implements ActionListener{
 
 		// Secondary Table
 		secondaryTable = new JTable();
-		DefaultTableModel secondaryTableModel = new DefaultTableModel(
+		secondaryTableModel = new DefaultTableModel(
 				new String[] { "Mã hóa đơn", "Mã sản phẩm", "Tên sản phẩm", "Đơn giá", "Số lượng", "Tổng" }, 0) {
 			@Override
 			public Class<?> getColumnClass(int columnIndex) {
@@ -144,9 +145,11 @@ public class InvoiceManagementTab extends JPanel implements ActionListener{
 		// Buttons panel
 		buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		deleteButton = new JButton("Xóa hàng");
+		reloadButton = new JButton("Làm mới");
 
 		buttonPanel.add(deleteButton);
-
+		buttonPanel.add(reloadButton);
+		reloadButton.addActionListener(this);
 		rightPanel.add(buttonPanel, BorderLayout.SOUTH);
 
 		GridBagConstraints gbcRightPanel = new GridBagConstraints();
@@ -182,6 +185,8 @@ public class InvoiceManagementTab extends JPanel implements ActionListener{
 			}
 		});
 
+		deleteButton.addActionListener(this);
+		
 	}
 
 	// Phương thức để load danh sách hóa đơn kèm thông tin nhân viên vào bảng
@@ -289,6 +294,63 @@ public class InvoiceManagementTab extends JPanel implements ActionListener{
                 loadInvoiceData();
             }
         }
+        
+        if (e.getSource()==reloadButton) {
+            loadInvoiceData();
+            setCustomerName("");
+            setTotal("0 VNĐ");
+            secondaryTableModel.setRowCount(0);
+        }
+        
+        
+        else if (e.getSource() == deleteButton) {
+            // Xử lý khi nút xóa hàng được nhấn
+            int selectedRow = secondaryTable.getSelectedRow(); // Lấy chỉ số hàng được chọn trong bảng chi tiết hóa đơn
+            if (selectedRow != -1) { // Kiểm tra hàng được chọn
+                String invoiceIdString = (String) secondaryTableModel.getValueAt(selectedRow, 0); // Lấy mã hóa đơn từ bảng chi tiết hóa đơn
+                String productIdString = (String) secondaryTableModel.getValueAt(selectedRow, 1); // Lấy mã sản phẩm từ bảng chi tiết hóa đơn
+                
+                // Chuyển đổi chuỗi mã hóa đơn và mã sản phẩm thành dữ liệu số tương ứng
+                long invoiceId = Long.parseLong(invoiceIdString.substring(2));
+                int productId = Integer.parseInt(productIdString.substring(2));
+                
+                // Gọi phương thức để xóa chi tiết hóa đơn từ service
+                boolean isSuccess = invoiceDetailService.deleteInvoiceDetailFromClient(invoiceId, productId);
+                
+                // Hiển thị thông báo kết quả cho người dùng
+                if (isSuccess) {
+                	
+                	
+                	
+                    JOptionPane.showMessageDialog(this, "Đã xóa chi tiết hóa đơn thành công.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+                    // Lấy giá trị tổng tiền hiện tại của hóa đơn
+                    double currentTotal = Double.parseDouble(totalField.getText().replace(" VNĐ", ""));
+
+                    // Lấy giá trị của chi tiết hóa đơn vừa xóa
+                    String subtotalString = (String) secondaryTableModel.getValueAt(selectedRow, 5);
+                    double deletedSubtotal = Double.parseDouble(subtotalString);
+
+                    // Trừ giá trị của chi tiết hóa đơn vừa xóa khỏi tổng tiền của hóa đơn
+                    double newTotal = currentTotal - deletedSubtotal;
+
+                    // Gọi phương thức cập nhật tổng tiền của hóa đơn với giá trị mới tính được
+                    boolean updateSuccess = invoiceService.updateInvoiceTotal(invoiceId, newTotal);
+                    if (updateSuccess) {
+                        setTotal(String.valueOf(newTotal) + " VNĐ");
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Cập nhật tổng tiền hóa đơn thất bại.", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    }
+                    secondaryTableModel.setRowCount(0);
+                    loadInvoiceData();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Xóa chi tiết hóa đơn thất bại.", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Vui lòng chọn một hàng để xóa.", "Thông báo", JOptionPane.WARNING_MESSAGE);
+            }
+        } 
+        
+        
     }
 
 

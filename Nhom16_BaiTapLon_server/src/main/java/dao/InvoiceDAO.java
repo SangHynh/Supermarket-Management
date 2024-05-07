@@ -95,4 +95,28 @@ public class InvoiceDAO {
         return query.getResultList();
     }
 
+    
+    public boolean updateTotalForInvoice(Long invoiceId, double total) {
+        try {
+            entityManager.getTransaction().begin();
+            Invoice invoice = entityManager.find(Invoice.class, invoiceId);
+            if (invoice != null) {
+                // Cập nhật tổng tiền cho hóa đơn
+                invoice.setTotal(total);
+                entityManager.getTransaction().commit();
+                return true;
+            } else {
+                entityManager.getTransaction().rollback();
+                return false;
+            }
+        } catch (Exception ex) {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+            ex.printStackTrace();
+            return false;
+        }
+    }
+
+    
 }
