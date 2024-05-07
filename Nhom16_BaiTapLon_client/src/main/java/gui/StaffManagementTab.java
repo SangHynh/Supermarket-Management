@@ -350,7 +350,7 @@ public class StaffManagementTab extends JPanel implements ActionListener{
 	            return; // Nếu dữ liệu không hợp lệ, không thêm nhân viên
 	        }
 	        // Lấy dữ liệu từ các trường nhập
-	        int id = Integer.parseInt(staffIdField.getText());
+//	        int id = Integer.parseInt(staffIdField.getText());
 	        String name = staffNameField.getText();
 	        String phone = phoneNumberField.getText();
 	        String email = emailField.getText();
